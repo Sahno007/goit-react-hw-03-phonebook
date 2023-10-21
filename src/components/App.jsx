@@ -6,27 +6,28 @@ import SearchInput from './SearchInput/SearchInput';
 
 export class App extends Component {
   state = {
-    contacts: JSON.parse(localStorage.getItem('contacts')) || [],
+    contacts: [], // Видалено парсинг localStorage зі стану
     filter: '',
   };
 
-  // componentDidMount = () => {
-  //   this.state.contacts = JSON.parse(localStorage.getItem('contacts')) || [];
-  // }
+  componentDidMount() { // Додано componentDidMount для отримання контактів при завантаженні сторінки
+    const storedContacts = JSON.parse(localStorage.getItem('contacts')) || [];
+    this.setState({ contacts: storedContacts });
+  }
 
-  componentDidUpdate = () => {
+  componentDidUpdate() {
     localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-  };
+  }
 
-  handleDeleteUser = id => {
+  handleDeleteUser = (id) => {
     if (window.confirm('Are you sure?')) {
       this.setState({
-        contacts: [...this.state.contacts.filter(user => user.id !== id)],
+        contacts: [...this.state.contacts.filter((user) => user.id !== id)],
       });
     }
   };
 
-  createUser = data => {
+  createUser = (data) => {
     this.setState({
       contacts: [
         ...this.state.contacts,
@@ -35,11 +36,21 @@ export class App extends Component {
     });
   };
 
-  handlerSearch = e => {
+  handleSearch = (e) => {
     this.setState({ filter: e.target.value });
   };
 
+  getFilteredContacts = () => { // Додано функцію для фільтрації контактів
+    const { filter, contacts } = this.state;
+    const normalizedFilter = filter.toLowerCase();
+    return contacts.filter((contact) =>
+      contact.name.toLowerCase().includes(normalizedFilter)
+    );
+  };
+
   render() {
+    const filteredContacts = this.getFilteredContacts(); // Використано функцію фільтрації контактів
+
     return (
       <div
         style={{
@@ -53,7 +64,7 @@ export class App extends Component {
           paddingTop: '100px',
         }}
       >
-        <h1> Phone book </h1>
+        <h1>Phone book</h1>
         <Form
           createUser={this.createUser}
           userNumber={this.state.number}
@@ -61,12 +72,12 @@ export class App extends Component {
           contacts={this.state.contacts}
         />
         <p>Find contacts by name</p>
-        <SearchInput onChange={this.handlerSearch} value={this.state.filter} />
+        <SearchInput onChange={this.handleSearch} value={this.state.filter} />
 
         <h2>Contacts</h2>
         <ContactList
           handleDeleteUser={this.handleDeleteUser}
-          contacts={this.state.contacts}
+          contacts={filteredContacts} // Передано вже відфільтровані контакти
           filter={this.state.filter}
         />
       </div>
